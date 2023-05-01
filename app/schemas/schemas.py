@@ -1,20 +1,15 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
 
+
+class TaskResponse(BaseModel):
+    status: str
+    args: dict[str, date]
+
+
 class Lead(BaseModel):
     id: int
-    created_at: date | None = None
-    email: EmailStr
+    created_at: date
     full_name: str
-    country: str
-
-    class Config:
-        orm_mode = True
-
-class CreateLead(BaseModel):
     email: EmailStr
-    full_name: str
-    country: str
-
-    class Config:
-        orm_mode = True
+    country_id: str
