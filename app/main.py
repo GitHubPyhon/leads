@@ -22,6 +22,9 @@ def download_leads(
         end_date: date = datetime.utcnow().date() + timedelta(days=1),
         db: Session = Depends(get_db)
 ):
+    if start_date > end_date:
+        return Response("start_date > end_date", status_code=400)
+
     # Create task
     task_db = models.Task(start_date=start_date, end_date=end_date)
     db.add(task_db)
@@ -49,7 +52,7 @@ def task_status(
     task = db.query(models.Task).filter_by(id=task_id).one_or_none()
 
     if task is None:
-        return JSONResponse(content={"error": "Item not found"}, status_code=404)
+        return Response("Task not found", status_code=404)
 
     task_response = schemas.TaskResponse(
         status=task.status,
@@ -63,14 +66,14 @@ def task_status(
 def get_leads(
         task_id: Annotated[int, Path(gt=0)],
         start_: Annotated[int, Query(gt=0)],
-        end_: Annotated[int, Query(gt=1, lt=1000)],
+        end_: Annotated[int, Query(gt=1, lte=1000)],
         response: Response,
         db: Session = Depends(get_db)
 ):
     task = db.query(models.Task).filter_by(id=task_id).one_or_none()
 
     if task is None:
-        return JSONResponse(content={"error": "Task not found"}, status_code=404)
+        return Response("Task not found", status_code=404)
 
     if task.status != "SUCCESFULL":
         return JSONResponse(
@@ -104,7 +107,7 @@ def delete_task(
     task = db.query(models.Task).filter_by(id=task_id).one_or_none()
 
     if task is None:
-        return JSONResponse(content={"error": "Task not found"}, status_code=404)
+        return Response("Task not found", status_code=404)
 
     db.delete(task)
     db.commit()
